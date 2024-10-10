@@ -15,6 +15,7 @@ type Config struct {
 	RestApiPort     int    `yaml:"restApiPort"`
 	TlsCertFile     string `yaml:"tlsCertFile"`
 	TlsKeyFile      string `yaml:"tlsKeyFile"`
+	LogFileName     string `yaml:"logFileName"`
 }
 
 func LoadConfig(filename string) Config {
@@ -46,6 +47,9 @@ func setDefaults(config *Config) {
 	}
 	if config.RestApiPort == 0 {
 		config.RestApiPort = 8083
+	}
+	if config.LogFileName == "" {
+		config.LogFileName = "messageredir.log"
 	}
 }
 

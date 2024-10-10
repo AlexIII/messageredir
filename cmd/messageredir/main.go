@@ -1,6 +1,7 @@
 package main
 
 import (
+	"io"
 	"log"
 	"messageredir/cmd/messageredir/api/controllers"
 	"messageredir/cmd/messageredir/api/middleware"
@@ -9,11 +10,13 @@ import (
 	"messageredir/cmd/messageredir/db/models"
 	"messageredir/cmd/messageredir/db/repo"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/gorilla/mux"
+	"github.com/natefinch/lumberjack"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
@@ -49,8 +52,21 @@ func processCommand(ctx CmdContext, message *tgbotapi.Message) bool {
 	return false
 }
 
+func setupLogging() {
+	logFile := &lumberjack.Logger{
+		Filename:   "app.log",
+		MaxSize:    10, // megabytes
+		MaxBackups: 3,
+		MaxAge:     28, // days
+		Compress:   true,
+	}
+	multiWriter := io.MultiWriter(os.Stdout, logFile)
+	log.SetOutput(multiWriter)
+}
+
 func main() {
-	log.Println("Starting...")
+	setupLogging()
+	log.Println("App starting...")
 	config := app.LoadConfig(ConfigFileName)
 
 	// Init DB
