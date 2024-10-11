@@ -51,7 +51,10 @@ func processCommand(cmd Command, message *tgbotapi.Message) bool {
 	return false
 }
 
-func setupLogging() {
+func setupLogging(config *app.Config) {
+	if config.LogFileName == "" {
+		return
+	}
 	logFile := &lumberjack.Logger{
 		Filename:   "app.log",
 		MaxSize:    10, // megabytes
@@ -64,9 +67,9 @@ func setupLogging() {
 }
 
 func main() {
-	setupLogging()
-	log.Println("App starting...")
 	config := app.LoadConfig(ConfigFileName)
+	setupLogging(&config)
+	log.Println("App starting...")
 
 	// Init DB
 	var dbRepo repo.DbRepo = repo.NewDbRepoGorm(config.DbFileName)
