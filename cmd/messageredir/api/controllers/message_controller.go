@@ -13,12 +13,12 @@ import (
 )
 
 type MessageController struct {
-	app.Context
+	Config         app.Config
 	MessageService services.MessageService
 }
 
-func NewMessageController(ctx app.Context, messageService services.MessageService) MessageController {
-	return MessageController{ctx, messageService}
+func NewMessageController(config app.Config, messageService services.MessageService) MessageController {
+	return MessageController{config, messageService}
 }
 
 func messageToString(message api.SmsToUrlForwarderMessageDTO) string {

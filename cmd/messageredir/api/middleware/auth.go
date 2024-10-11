@@ -14,11 +14,11 @@ type contextKey string
 const UserKey contextKey = "user"
 
 // AuthMiddleware checks user authorization and fetches user information.
-func UserAuth(ctx app.Context, next http.Handler) http.Handler {
+func UserAuth(config *app.Config, db *repo.DbRepo, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		path := strings.Split(r.URL.Path, "/")
 		var token *string
-		if len(path) > 1 && len(path[1]) > (ctx.Config.UserTokenLength-1)*8/6 { // Approximate check for token length
+		if len(path) > 1 && len(path[1]) > (config.UserTokenLength-1)*8/6 { // Approximate check for token length
 			token = &path[1]
 		}
 		if token == nil {
@@ -26,7 +26,7 @@ func UserAuth(ctx app.Context, next http.Handler) http.Handler {
 			return
 		}
 
-		user := repo.GetUserByToken(ctx.Db, *token)
+		user := db.GetUserByToken(*token)
 		if user == nil {
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return
