@@ -9,7 +9,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func (db *DbRepo) DeleteUser(chatId int64) {
+func (db *DbRepoGorm) DeleteUser(chatId int64) {
 	var user models.User
 	if err := db.driver.Where("chat_id = ?", chatId).First(&user).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -27,7 +27,7 @@ func (db *DbRepo) DeleteUser(chatId int64) {
 	}
 }
 
-func (db *DbRepo) getUserBy(query interface{}, args ...interface{}) *models.User {
+func (db *DbRepoGorm) getUserBy(query interface{}, args ...interface{}) *models.User {
 	var user models.User
 	if err := db.driver.Where(query, args).First(&user).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -42,16 +42,16 @@ func (db *DbRepo) getUserBy(query interface{}, args ...interface{}) *models.User
 	return &user
 }
 
-func (db *DbRepo) GetUserByToken(token string) *models.User {
+func (db *DbRepoGorm) GetUserByToken(token string) *models.User {
 	return db.getUserBy("token = ?", token)
 }
 
-func (db *DbRepo) GetUserByChatId(chatId int64) *models.User {
+func (db *DbRepoGorm) GetUserByChatId(chatId int64) *models.User {
 	return db.getUserBy("chat_id = ?", chatId)
 }
 
 // Guaranteed to return a user
-func (db *DbRepo) GetOrCreateUser(chatId int64, username string, generateNewTokenLength int) *models.User {
+func (db *DbRepoGorm) GetOrCreateUser(chatId int64, username string, generateNewTokenLength int) *models.User {
 	user := db.GetUserByChatId(chatId)
 
 	newToken := func() string {

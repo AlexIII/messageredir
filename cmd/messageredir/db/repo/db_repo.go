@@ -1,11 +1,12 @@
 package repo
 
-import "gorm.io/gorm"
+import (
+	"messageredir/cmd/messageredir/db/models"
+)
 
-type DbRepo struct {
-	driver *gorm.DB
-}
-
-func NewDbRepo(db *gorm.DB) DbRepo {
-	return DbRepo{db}
+type DbRepo interface {
+	DeleteUser(chatId int64)
+	GetUserByToken(token string) *models.User
+	GetUserByChatId(chatId int64) *models.User
+	GetOrCreateUser(chatId int64, username string, generateNewTokenLength int) *models.User
 }

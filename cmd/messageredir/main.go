@@ -7,7 +7,6 @@ import (
 	"messageredir/cmd/messageredir/api/middleware"
 	"messageredir/cmd/messageredir/api/services"
 	"messageredir/cmd/messageredir/app"
-	"messageredir/cmd/messageredir/db/models"
 	"messageredir/cmd/messageredir/db/repo"
 	"net/http"
 	"os"
@@ -17,15 +16,13 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/gorilla/mux"
 	"github.com/natefinch/lumberjack"
-	"gorm.io/driver/sqlite"
-	"gorm.io/gorm"
 )
 
 const ConfigFileName = "messageredir.yaml"
 
 type Command struct {
 	app    *app.Config
-	db     *repo.DbRepo
+	db     repo.DbRepo
 	msg    services.MessageService
 	config *app.Config
 }
@@ -72,11 +69,7 @@ func main() {
 	config := app.LoadConfig(ConfigFileName)
 
 	// Init DB
-	db, err := gorm.Open(sqlite.Open(config.DbFileName), &gorm.Config{})
-	if err != nil {
-		log.Panic("failed to connect to database")
-	}
-	db.AutoMigrate(&models.User{})
+	var dbRepo repo.DbRepo = repo.NewDbRepoGorm(config.DbFileName)
 
 	// Init Telegram bot
 	bot, err := tgbotapi.NewBotAPI(config.TgBotToken)
@@ -86,7 +79,6 @@ func main() {
 	bot.Debug = true
 	log.Printf("Authorized on telegram account %s", bot.Self.UserName)
 
-	dbRepo := repo.NewDbRepo(db)
 	tgMsgService := services.NewMessageServiceTelegram()
 
 	// Init HTTP server
@@ -95,7 +87,7 @@ func main() {
 		r := mux.NewRouter()
 		r.HandleFunc("/{user_token}/smstourlforwarder", messageController.SmsToUrlForwarder).Methods("POST")
 
-		http.Handle("/", middleware.UserAuth(&config, &dbRepo, middleware.Logger(r)))
+		http.Handle("/", middleware.UserAuth(&config, dbRepo, middleware.Logger(r)))
 
 		portStr := ":" + strconv.Itoa(config.RestApiPort)
 		tlsOn := config.TlsCertFile != "" && config.TlsKeyFile != ""
@@ -115,7 +107,7 @@ func main() {
 
 	// Start listening to messages
 	go func() {
-		cmdCtx := Command{app: &config, db: &dbRepo, msg: tgMsgService, config: &config}
+		cmdCtx := Command{app: &config, db: dbRepo, msg: tgMsgService, config: &config}
 		updConf := tgbotapi.NewUpdate(0)
 		updConf.Timeout = 60
 		updates := bot.GetUpdatesChan(updConf)
