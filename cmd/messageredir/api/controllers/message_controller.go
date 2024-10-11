@@ -10,6 +10,7 @@ import (
 	db "messageredir/cmd/messageredir/db/models"
 	"messageredir/cmd/messageredir/services"
 	sm "messageredir/cmd/messageredir/services/models"
+	"messageredir/cmd/messageredir/strings"
 	"net/http"
 )
 
@@ -20,10 +21,6 @@ type MessageController struct {
 
 func NewMessageController(config *app.Config, messageService services.TelegramService) MessageController {
 	return MessageController{config, messageService}
-}
-
-func messageToString(message am.SmsToUrlForwarderMessageDTO) string {
-	return fmt.Sprintf("From: %s\nDate: %s\nSim: %s\n\n%s", message.From, message.Sent, message.Sim, message.Text)
 }
 
 func (ctx MessageController) SmsToUrlForwarder(w http.ResponseWriter, r *http.Request) {
@@ -44,5 +41,8 @@ func (ctx MessageController) SmsToUrlForwarder(w http.ResponseWriter, r *http.Re
 	}
 
 	log.Println("Pushing new message for user", user.Username)
-	ctx.MessageService.Send(sm.TelegramMessageOut{ChatId: user.ChatId, Text: messageToString(message)})
+	ctx.MessageService.Send(sm.TelegramMessageOut{
+		ChatId: user.ChatId,
+		Text:   fmt.Sprintf(strings.MsgRedirFmt, message.From, message.Sent, message.Sim, message.Text),
+	})
 }

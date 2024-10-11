@@ -9,6 +9,7 @@ import (
 	"messageredir/cmd/messageredir/db/repo"
 	"messageredir/cmd/messageredir/services"
 	"messageredir/cmd/messageredir/services/models"
+	"messageredir/cmd/messageredir/strings"
 	"net/http"
 	"os"
 	"strconv"
@@ -71,7 +72,7 @@ func (app App) serveBot() {
 			log.Println("Unknown command")
 			app.tgService.Send(models.TelegramMessageOut{
 				ChatId: msg.ChatId,
-				Text:   "Hi! This is redir bot.\nSend /start command to get your token or /end to leave the service.",
+				Text:   strings.BotMsgHelp,
 			})
 		}
 	}
