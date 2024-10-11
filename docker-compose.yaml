@@ -15,16 +15,37 @@ services:
     environment:
       - MREDIR_DB_FILE_NAME=${MREDIR_DB_FILE_NAME:-/root/app/db/messageredir.db}
       - MREDIR_TG_BOT_TOKEN=${MREDIR_TG_BOT_TOKEN:-}
-      - USER_TOKEN_LENGTH=${USER_TOKEN_LENGTH:-}
+      - MREDIR_USER_TOKEN_LENGTH=${MREDIR_USER_TOKEN_LENGTH:-}
       - MREDIR_LOG_USER_MESSAGES=${MREDIR_LOG_USER_MESSAGES:-}
-      - TLS_CERT_FILE=${TLS_CERT_FILE:-}
-      - TLS_KEY_FILE=${TLS_KEY_FILE:-}
+      - MREDIR_TLS_CERT_FILE=${MREDIR_TLS_CERT_FILE:-}
+      - MREDIR_TLS_KEY_FILE=${MREDIR_TLS_KEY_FILE:-}
     volumes:
       - messageredir-db:/root/app/db
+      - messageredir-tls:/root/app/tls
     ports:
       - "8089:8080"
     restart: unless-stopped
+    depends_on:
+      init-tls:
+        condition: service_completed_successfully
     logging: *default-logging
+    
+  init-tls:
+    image: alpine
+    container_name: init-tls-inst
+    volumes:
+      - messageredir-tls:/root/app/tls
+    command: >
+      sh -c "
+      if [ ! -f /root/app/tls/tls.key ] || [ ! -f /root/app/tls/tls.crt ]; then
+        apk add --no-cache openssl &&
+        mkdir -p /root/app/tls &&
+        openssl req -x509 -nodes -days 36500 -newkey rsa:2048 -keyout /root/app/tls/tls.key -out /root/app/tls/tls.crt -subj '/CN=localhost' &&
+        echo 'TLS certificate and key generated'
+      fi
+      "
+    restart: "no"
 
 volumes:
   messageredir-db:
+  messageredir-tls:
