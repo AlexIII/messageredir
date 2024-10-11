@@ -36,8 +36,8 @@ Body:
 {
      "from": "%from%",
      "text": "%text%",
-     "sentStamp": "%sentStamp%",
-     "receivedStamp": "%receivedStamp%",
+     "sentStamp": %sentStampMs%,
+     "receivedStamp": %receivedStampMs%,
      "sim": "%sim%"
 }
 ```

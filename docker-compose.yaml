@@ -1,4 +1,3 @@
-version: '3.8'
 name: messageredir-stack
 
 x-logging: 
@@ -11,6 +10,7 @@ x-logging:
 services:
   messageredir:
     build: .
+    image: alex3iii/messageredir:latest
     container_name: messageredir-inst
     environment:
       - MREDIR_DB_FILE_NAME=${MREDIR_DB_FILE_NAME:-/root/app/db/messageredir.db}
@@ -23,7 +23,7 @@ services:
       - messageredir-db:/root/app/db
       - messageredir-tls:/root/app/tls
     ports:
-      - "8089:8080"
+      - 8089:8080
     restart: unless-stopped
     depends_on:
       init-tls:

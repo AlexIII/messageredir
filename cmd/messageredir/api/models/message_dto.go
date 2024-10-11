@@ -1,9 +1,9 @@
 package models
 
 type SmsToUrlForwarderMessageDTO struct {
-	From     string `json:"from"`
-	Text     string `json:"text"`
-	Sent     string `json:"sentStamp"`
-	Received string `json:"receivedStamp"`
-	Sim      string `json:"sim"`
+	From         string `json:"from"`
+	Text         string `json:"text"`
+	SentAtTs     int64  `json:"sentStamp"`
+	ReceivedAtTs int64  `json:"receivedStamp"`
+	Sim          string `json:"sim"`
 }
