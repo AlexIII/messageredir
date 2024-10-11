@@ -8,6 +8,7 @@ import (
 	am "messageredir/cmd/messageredir/api/models"
 	"messageredir/cmd/messageredir/config"
 	db "messageredir/cmd/messageredir/db/models"
+	"messageredir/cmd/messageredir/db/repo"
 	"messageredir/cmd/messageredir/services"
 	sm "messageredir/cmd/messageredir/services/models"
 	"messageredir/cmd/messageredir/strings"
@@ -15,12 +16,13 @@ import (
 )
 
 type MessageController struct {
-	Config         *config.Config
-	MessageService services.TelegramService
+	config   *config.Config
+	db       repo.DbRepo
+	telegram services.TelegramService
 }
 
-func NewMessageController(config *config.Config, messageService services.TelegramService) MessageController {
-	return MessageController{config, messageService}
+func NewMessageController(config *config.Config, db repo.DbRepo, telegram services.TelegramService) MessageController {
+	return MessageController{config, db, telegram}
 }
 
 func (ctx MessageController) SmsToUrlForwarder(w http.ResponseWriter, r *http.Request) {
@@ -36,12 +38,13 @@ func (ctx MessageController) SmsToUrlForwarder(w http.ResponseWriter, r *http.Re
 		panic("User not found in context")
 	}
 
-	if ctx.Config.LogUserMessages {
+	if ctx.config.LogUserMessages {
 		log.Printf("New message: %s %+v", user.Username, message)
 	}
+	ctx.db.UpdateUserStats(user.ID, repo.UpdateUserStats{MessageRedir: true})
 
 	log.Println("Pushing new message for user", user.Username)
-	ctx.MessageService.Send(sm.TelegramMessageOut{
+	ctx.telegram.Send(sm.TelegramMessageOut{
 		ChatId: user.ChatId,
 		Text:   fmt.Sprintf(strings.MsgRedirFmt, message.From, message.Sent, message.Sim, message.Text),
 	})

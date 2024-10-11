@@ -5,6 +5,7 @@ import (
 	"log"
 	"messageredir/cmd/messageredir/accessToken"
 	"messageredir/cmd/messageredir/db/models"
+	"time"
 
 	"gorm.io/gorm"
 )
@@ -22,6 +23,17 @@ func (db *DbRepoGorm) DeleteUser(chatId int64) {
 
 	log.Println("Deleting User:", user.ChatId, user.Username)
 	err := db.driver.Delete(&user).Error
+	if err != nil {
+		log.Panic(err)
+	}
+}
+
+func (db *DbRepoGorm) UpdateUserStats(userId uint, stats UpdateUserStats) {
+	user := db.getUserBy("id = ?", userId)
+	if stats.MessageRedir {
+		user.LastMessageRedirAt = time.Now().UTC()
+	}
+	err := db.driver.Save(user).Error
 	if err != nil {
 		log.Panic(err)
 	}
@@ -65,7 +77,7 @@ func (db *DbRepoGorm) GetOrCreateUser(chatId int64, username string, generateNew
 	if user != nil {
 		if generateNewTokenLength > 0 {
 			user.Token = newToken()
-			err := db.driver.Save(&user).Error
+			err := db.driver.Save(user).Error
 			if err != nil {
 				log.Panic(err)
 			}
@@ -79,7 +91,7 @@ func (db *DbRepoGorm) GetOrCreateUser(chatId int64, username string, generateNew
 		Username: username,
 		Token:    newToken(),
 	}
-	err := db.driver.Create(&user).Error
+	err := db.driver.Create(user).Error
 	if err != nil {
 		log.Panic(err)
 	}

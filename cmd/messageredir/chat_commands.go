@@ -6,16 +6,16 @@ import (
 )
 
 func (cmd App) start(message models.TelegramMessageIn) {
-	user := cmd.dbRepo.GetOrCreateUser(message.ChatId, message.Username, cmd.config.UserTokenLength)
-	cmd.tgService.Send(models.TelegramMessageOut{
+	user := cmd.db.GetOrCreateUser(message.ChatId, message.Username, cmd.config.UserTokenLength)
+	cmd.telegram.Send(models.TelegramMessageOut{
 		ChatId: user.ChatId,
 		Text:   "You are good to go!\nYour token: " + user.Token,
 	})
 }
 
 func (cmd App) end(message models.TelegramMessageIn) {
-	cmd.dbRepo.DeleteUser(message.ChatId)
-	cmd.tgService.Send(models.TelegramMessageOut{
+	cmd.db.DeleteUser(message.ChatId)
+	cmd.telegram.Send(models.TelegramMessageOut{
 		ChatId: message.ChatId,
 		Text:   "You were erased from the system. Goodbye!",
 	})

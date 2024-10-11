@@ -21,9 +21,9 @@ import (
 const ConfigFileName = "messageredir.yaml"
 
 type App struct {
-	config    *config.Config
-	dbRepo    repo.DbRepo
-	tgService services.TelegramService
+	config   *config.Config
+	db       repo.DbRepo
+	telegram services.TelegramService
 }
 
 func main() {
@@ -40,11 +40,11 @@ func main() {
 }
 
 func (app App) serveRest() {
-	messageController := controllers.NewMessageController(app.config, app.tgService)
+	messageController := controllers.NewMessageController(app.config, app.db, app.telegram)
 	r := mux.NewRouter()
 	r.HandleFunc("/{user_token}/smstourlforwarder", messageController.SmsToUrlForwarder).Methods("POST")
 
-	http.Handle("/", middleware.UserAuth(app.config, app.dbRepo, middleware.Logger(r)))
+	http.Handle("/", middleware.UserAuth(app.config, app.db, middleware.Logger(r)))
 
 	portStr := ":" + strconv.Itoa(app.config.RestApiPort)
 	tlsOn := app.config.TlsCertFile != "" && app.config.TlsKeyFile != ""
@@ -64,13 +64,13 @@ func (app App) serveRest() {
 
 func (app App) serveBot() {
 	for {
-		msg := <-app.tgService.GetReceiveChan()
+		msg := <-app.telegram.GetReceiveChan()
 		if app.config.LogUserMessages {
 			log.Printf("[%s] %s", msg.Username, msg.Text)
 		}
 		if !app.Process(msg) {
 			log.Println("Unknown command")
-			app.tgService.Send(models.TelegramMessageOut{
+			app.telegram.Send(models.TelegramMessageOut{
 				ChatId: msg.ChatId,
 				Text:   strings.BotMsgHelp,
 			})
