@@ -1,0 +1,30 @@
+version: '3.8'
+name: messageredir-stack
+
+x-logging: 
+  &default-logging
+  driver: "json-file"
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  messageredir:
+    build: .
+    container_name: messageredir-inst
+    environment:
+      - MREDIR_DB_FILE_NAME=${MREDIR_DB_FILE_NAME:-/root/app/db/messageredir.db}
+      - MREDIR_TG_BOT_TOKEN=${MREDIR_TG_BOT_TOKEN:-}
+      - USER_TOKEN_LENGTH=${USER_TOKEN_LENGTH:-}
+      - MREDIR_LOG_USER_MESSAGES=${MREDIR_LOG_USER_MESSAGES:-}
+      - TLS_CERT_FILE=${TLS_CERT_FILE:-}
+      - TLS_KEY_FILE=${TLS_KEY_FILE:-}
+    volumes:
+      - messageredir-db:/root/app/db
+    ports:
+      - "8089:8080"
+    restart: unless-stopped
+    logging: *default-logging
+
+volumes:
+  messageredir-db:

@@ -1,6 +1,9 @@
 *.db
 *.key
 *.pem
-*.yaml
 *.log
+
 cmd/langtests
+
+messageredir.yaml
+.env
