@@ -29,7 +29,7 @@ type App struct {
 func main() {
 	config := config.Load(ConfigFileName)
 	setupLogging(&config)
-	log.Println("App starting...")
+	log.Printf("App starting. Config: %+v", config)
 
 	dbRepo := repo.NewDbRepoGorm(config.DbFileName)
 	tgService := services.StartTelegramService(config.TgBotToken)
