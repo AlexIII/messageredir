@@ -23,11 +23,19 @@ type Config struct {
 	LogFileName     string `yaml:"logFileName" env:"LOG_FILE_NAME"`
 }
 
+func Load(filename string) Config {
+	config := loadFromYaml(filename)
+	enrichFromEnv(&config)
+	setDefaults(&config)
+	validate(&config)
+	return config
+}
+
 func loadFromYaml(filename string) Config {
 	var config Config
 	file, err := os.Open(filename)
 	if err != nil {
-		log.Println("Cannot opening config file:", err, "Skipping.")
+		log.Println("Cannot open config file:", err, ". Skipping.")
 		return config
 	}
 	defer file.Close()
@@ -45,14 +53,6 @@ func enrichFromEnv(config *Config) {
 	env.ParseWithOptions(config, env.Options{Prefix: EnvConfigPrefix}) // Ignore errors
 }
 
-func Load(filename string) Config {
-	config := loadFromYaml(filename)
-	enrichFromEnv(&config)
-	setDefaults(&config)
-	validate(&config)
-	return config
-}
-
 func setDefaults(config *Config) {
 	if config.DbFileName == "" {
 		config.DbFileName = "messageredir.db"
@@ -61,7 +61,7 @@ func setDefaults(config *Config) {
 		config.UserTokenLength = 42
 	}
 	if config.RestApiPort == 0 {
-		config.RestApiPort = 8083
+		config.RestApiPort = 8080
 	}
 }
 
