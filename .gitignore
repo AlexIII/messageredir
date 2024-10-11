@@ -3,3 +3,4 @@
 *.pem
 *.yaml
 *.log
+cmd/langtests

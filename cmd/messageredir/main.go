@@ -5,50 +5,76 @@ import (
 	"log"
 	"messageredir/cmd/messageredir/api/controllers"
 	"messageredir/cmd/messageredir/api/middleware"
-	"messageredir/cmd/messageredir/api/services"
 	"messageredir/cmd/messageredir/app"
 	"messageredir/cmd/messageredir/db/repo"
+	"messageredir/cmd/messageredir/services"
+	"messageredir/cmd/messageredir/services/models"
 	"net/http"
 	"os"
 	"strconv"
-	"time"
 
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/gorilla/mux"
 	"github.com/natefinch/lumberjack"
 )
 
 const ConfigFileName = "messageredir.yaml"
 
-type Command struct {
-	app    *app.Config
-	db     repo.DbRepo
-	msg    services.MessageService
-	config *app.Config
+type App struct {
+	config    *app.Config
+	dbRepo    repo.DbRepo
+	tgService services.TelegramService
 }
 
-func (ctx Command) start(message *tgbotapi.Message) {
-	user := ctx.db.GetOrCreateUser(message.Chat.ID, message.From.UserName, ctx.config.UserTokenLength)
-	ctx.msg.SendStr(user.ChatId, "You are good to go!\nYour token: "+user.Token)
+func main() {
+	config := app.LoadConfig(ConfigFileName)
+	setupLogging(&config)
+	log.Println("App starting...")
+
+	dbRepo := repo.NewDbRepoGorm(config.DbFileName)
+	tgService := services.StartTelegramService(config.TgBotToken)
+
+	app := App{&config, dbRepo, tgService}
+	go app.serveRest()
+	app.serveBot()
 }
 
-func (ctx Command) end(message *tgbotapi.Message) {
-	ctx.db.DeleteUser(message.Chat.ID)
-	ctx.msg.SendStr(message.Chat.ID, "You were erased from the system. Goodbye!")
-}
+func (app App) serveRest() {
+	messageController := controllers.NewMessageController(app.config, app.tgService)
+	r := mux.NewRouter()
+	r.HandleFunc("/{user_token}/smstourlforwarder", messageController.SmsToUrlForwarder).Methods("POST")
 
-func processCommand(cmd Command, message *tgbotapi.Message) bool {
-	commands := map[string]func(message *tgbotapi.Message){
-		"start": cmd.start,
-		"end":   cmd.end,
+	http.Handle("/", middleware.UserAuth(app.config, app.dbRepo, middleware.Logger(r)))
+
+	portStr := ":" + strconv.Itoa(app.config.RestApiPort)
+	tlsOn := app.config.TlsCertFile != "" && app.config.TlsKeyFile != ""
+	serve := func() error {
+		if tlsOn {
+			return http.ListenAndServeTLS(portStr, app.config.TlsCertFile, app.config.TlsKeyFile, nil)
+		} else {
+			return http.ListenAndServe(portStr, nil)
+		}
 	}
-	cmdName := message.Command()
-	if run, found := commands[cmdName]; found {
-		log.Println("Processing command", cmdName, message.Chat.ID)
-		run(message)
-		return true
+
+	log.Println("Starting server on", app.config.RestApiPort, "TLS:", tlsOn)
+	if err := serve(); err != nil {
+		log.Fatal(err)
 	}
-	return false
+}
+
+func (app App) serveBot() {
+	for {
+		msg := <-app.tgService.GetReceiveChan()
+		if app.config.LogUserMessages {
+			log.Printf("[%s] %s", msg.Username, msg.Text)
+		}
+		if !app.Process(msg) {
+			log.Println("Unknown command")
+			app.tgService.Send(models.TelegramMessageOut{
+				ChatId: msg.ChatId,
+				Text:   "Hi! This is redir bot.\nSend /start command to get your token or /end to leave the service.",
+			})
+		}
+	}
 }
 
 func setupLogging(config *app.Config) {
@@ -64,76 +90,4 @@ func setupLogging(config *app.Config) {
 	}
 	multiWriter := io.MultiWriter(os.Stdout, logFile)
 	log.SetOutput(multiWriter)
-}
-
-func main() {
-	config := app.LoadConfig(ConfigFileName)
-	setupLogging(&config)
-	log.Println("App starting...")
-
-	// Init DB
-	var dbRepo repo.DbRepo = repo.NewDbRepoGorm(config.DbFileName)
-
-	// Init Telegram bot
-	bot, err := tgbotapi.NewBotAPI(config.TgBotToken)
-	if err != nil {
-		log.Panic(err)
-	}
-	bot.Debug = true
-	log.Printf("Authorized on telegram account %s", bot.Self.UserName)
-
-	tgMsgService := services.NewMessageServiceTelegram()
-
-	// Init HTTP server
-	go func() {
-		messageController := controllers.NewMessageController(config, tgMsgService)
-		r := mux.NewRouter()
-		r.HandleFunc("/{user_token}/smstourlforwarder", messageController.SmsToUrlForwarder).Methods("POST")
-
-		http.Handle("/", middleware.UserAuth(&config, dbRepo, middleware.Logger(r)))
-
-		portStr := ":" + strconv.Itoa(config.RestApiPort)
-		tlsOn := config.TlsCertFile != "" && config.TlsKeyFile != ""
-		serve := func() error {
-			if tlsOn {
-				return http.ListenAndServeTLS(portStr, config.TlsCertFile, config.TlsKeyFile, nil)
-			} else {
-				return http.ListenAndServe(portStr, nil)
-			}
-		}
-
-		log.Println("Starting server on", config.RestApiPort, "TLS:", tlsOn)
-		if err := serve(); err != nil {
-			log.Fatal(err)
-		}
-	}()
-
-	// Start listening to messages
-	go func() {
-		cmdCtx := Command{app: &config, db: dbRepo, msg: tgMsgService, config: &config}
-		updConf := tgbotapi.NewUpdate(0)
-		updConf.Timeout = 60
-		updates := bot.GetUpdatesChan(updConf)
-		for {
-			select {
-			case msg := <-tgMsgService.GetOutMessages():
-				bot.Send(tgbotapi.NewMessage(msg.ChatId, msg.Message))
-
-			case update := <-updates:
-				if update.Message != nil { // Got a message
-					if config.LogUserMessages {
-						log.Printf("[%s] %s", update.Message.From.UserName, update.Message.Text)
-					}
-					if !processCommand(cmdCtx, update.Message) {
-						log.Println("Unknown command")
-						tgMsgService.SendStr(update.Message.Chat.ID, "Hi! This is redir bot.\nSend /start command to get your token or /end to leave the service.")
-					}
-				}
-			}
-		}
-	}()
-
-	for {
-		time.Sleep(time.Hour)
-	}
 }

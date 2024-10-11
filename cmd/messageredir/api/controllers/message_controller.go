@@ -5,28 +5,29 @@ import (
 	"fmt"
 	"log"
 	"messageredir/cmd/messageredir/api/middleware"
-	api "messageredir/cmd/messageredir/api/models"
-	"messageredir/cmd/messageredir/api/services"
+	am "messageredir/cmd/messageredir/api/models"
 	"messageredir/cmd/messageredir/app"
 	db "messageredir/cmd/messageredir/db/models"
+	"messageredir/cmd/messageredir/services"
+	sm "messageredir/cmd/messageredir/services/models"
 	"net/http"
 )
 
 type MessageController struct {
-	Config         app.Config
-	MessageService services.MessageService
+	Config         *app.Config
+	MessageService services.TelegramService
 }
 
-func NewMessageController(config app.Config, messageService services.MessageService) MessageController {
+func NewMessageController(config *app.Config, messageService services.TelegramService) MessageController {
 	return MessageController{config, messageService}
 }
 
-func messageToString(message api.SmsToUrlForwarderMessageDTO) string {
+func messageToString(message am.SmsToUrlForwarderMessageDTO) string {
 	return fmt.Sprintf("From: %s\nDate: %s\nSim: %s\n\n%s", message.From, message.Sent, message.Sim, message.Text)
 }
 
 func (ctx MessageController) SmsToUrlForwarder(w http.ResponseWriter, r *http.Request) {
-	var message api.SmsToUrlForwarderMessageDTO
+	var message am.SmsToUrlForwarderMessageDTO
 	if err := json.NewDecoder(r.Body).Decode(&message); err != nil {
 		log.Println("Error parsing request:", err)
 		http.Error(w, "Error parsing request", http.StatusBadRequest)
@@ -43,5 +44,5 @@ func (ctx MessageController) SmsToUrlForwarder(w http.ResponseWriter, r *http.Re
 	}
 
 	log.Println("Pushing new message for user", user.Username)
-	ctx.MessageService.SendStr(user.ChatId, messageToString(message))
+	ctx.MessageService.Send(sm.TelegramMessageOut{ChatId: user.ChatId, Text: messageToString(message)})
 }
