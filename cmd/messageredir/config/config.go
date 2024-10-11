@@ -1,4 +1,4 @@
-package app
+package config
 
 import (
 	"log"
@@ -18,7 +18,7 @@ type Config struct {
 	LogFileName     string `yaml:"logFileName"`
 }
 
-func LoadConfig(filename string) Config {
+func Load(filename string) Config {
 	var config Config
 	file, err := os.Open(filename)
 	if err != nil {

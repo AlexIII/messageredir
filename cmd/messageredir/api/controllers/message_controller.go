@@ -6,7 +6,7 @@ import (
 	"log"
 	"messageredir/cmd/messageredir/api/middleware"
 	am "messageredir/cmd/messageredir/api/models"
-	"messageredir/cmd/messageredir/app"
+	"messageredir/cmd/messageredir/config"
 	db "messageredir/cmd/messageredir/db/models"
 	"messageredir/cmd/messageredir/services"
 	sm "messageredir/cmd/messageredir/services/models"
@@ -15,11 +15,11 @@ import (
 )
 
 type MessageController struct {
-	Config         *app.Config
+	Config         *config.Config
 	MessageService services.TelegramService
 }
 
-func NewMessageController(config *app.Config, messageService services.TelegramService) MessageController {
+func NewMessageController(config *config.Config, messageService services.TelegramService) MessageController {
 	return MessageController{config, messageService}
 }
 

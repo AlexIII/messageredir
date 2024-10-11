@@ -5,7 +5,7 @@ import (
 	"log"
 	"messageredir/cmd/messageredir/api/controllers"
 	"messageredir/cmd/messageredir/api/middleware"
-	"messageredir/cmd/messageredir/app"
+	"messageredir/cmd/messageredir/config"
 	"messageredir/cmd/messageredir/db/repo"
 	"messageredir/cmd/messageredir/services"
 	"messageredir/cmd/messageredir/services/models"
@@ -21,13 +21,13 @@ import (
 const ConfigFileName = "messageredir.yaml"
 
 type App struct {
-	config    *app.Config
+	config    *config.Config
 	dbRepo    repo.DbRepo
 	tgService services.TelegramService
 }
 
 func main() {
-	config := app.LoadConfig(ConfigFileName)
+	config := config.Load(ConfigFileName)
 	setupLogging(&config)
 	log.Println("App starting...")
 
@@ -78,7 +78,7 @@ func (app App) serveBot() {
 	}
 }
 
-func setupLogging(config *app.Config) {
+func setupLogging(config *config.Config) {
 	if config.LogFileName == "" {
 		return
 	}

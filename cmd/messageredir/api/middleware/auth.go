@@ -3,7 +3,7 @@ package middleware
 import (
 	"context"
 	"log"
-	"messageredir/cmd/messageredir/app"
+	"messageredir/cmd/messageredir/config"
 	"messageredir/cmd/messageredir/db/repo"
 	"net/http"
 	"strings"
@@ -14,7 +14,7 @@ type contextKey string
 const UserKey contextKey = "user"
 
 // AuthMiddleware checks user authorization and fetches user information.
-func UserAuth(config *app.Config, db repo.DbRepo, next http.Handler) http.Handler {
+func UserAuth(config *config.Config, db repo.DbRepo, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		path := strings.Split(r.URL.Path, "/")
 		var token *string
