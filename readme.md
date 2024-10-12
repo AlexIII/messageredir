@@ -18,7 +18,9 @@ This bot is multi-user, meaning you can connect with different Telegram accounts
 
 1. Run the server
 
-### Docker
+##### Run the server in a single `docker` command
+
+Prebuilt image is available on dockerhub: https://hub.docker.com/repository/docker/alex3iii/messageredir
 
 ```sh
 docker run -d --name messageredir-inst -e MREDIR_TG_BOT_TOKEN="YOUR_TELEGRAM_BOT_TOKEN" -v "$(pwd)/messageredir.db:/root/app/messageredir.db" -p 8089:8080 alex3iii/messageredir:latest
@@ -26,9 +28,12 @@ docker run -d --name messageredir-inst -e MREDIR_TG_BOT_TOKEN="YOUR_TELEGRAM_BOT
 
 This will serve HTTP by default. You can pass `MREDIR_TLS_CERT_FILE` and `MREDIR_TLS_KEY_FILE` environment variables to enable HTTPS.
 
-### Docker Compose
+##### Or use `docker compose` (recommended)
 
-i. Copy `docker-compose.yaml` to an empty directory on your server.
+i. Copy [docker-compose.yaml](./docker-compose.yaml) to an empty directory on your server.
+  ```sh
+  wget https://github.com/AlexIII/messageredir/raw/refs/heads/main/docker-compose.yaml
+  ```
 
 ii. Create an `.env` file in the same directory and set your configuration there. Example:
   ```env
@@ -43,6 +48,16 @@ iii. Run:
   docker compose up -d
   ```
   Remove `-d` on the first try to see the app log (errors, etc).
+  The default HTTP(S) port is 8089. Create `docker-compose.override.yaml` to override.
+  See logs with `docker compose logs`.
+
+iv. Later, if you want to update to a newer version:
+  ```sh
+  docker compose down
+  wget https://github.com/AlexIII/messageredir/raw/refs/heads/main/docker-compose.yaml
+  docker pull alex3iii/messageredir:latest
+  docker compose up -d
+  ```
 
 2. After the server is running, write to the bot from your Telegram account. The `\start` command will return an access token.
 
