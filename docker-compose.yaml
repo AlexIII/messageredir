@@ -19,6 +19,7 @@ services:
       - MREDIR_LOG_USER_MESSAGES=${MREDIR_LOG_USER_MESSAGES:-}
       - MREDIR_TLS_CERT_FILE=${MREDIR_TLS_CERT_FILE:-}
       - MREDIR_TLS_KEY_FILE=${MREDIR_TLS_KEY_FILE:-}
+      - MREDIR_MY_HOST=${MREDIR_MY_HOST:-}
     volumes:
       - messageredir-db:/root/app/db
       - messageredir-tls:/root/app/tls

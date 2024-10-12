@@ -1,15 +1,32 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"messageredir/cmd/messageredir/services/models"
+	"messageredir/cmd/messageredir/strings"
 )
 
 func (ctx *App) start(message models.TelegramMessageIn) {
 	user := ctx.db.GetOrCreateUser(message.ChatId, message.Username, ctx.config.UserTokenLength)
+
 	ctx.telegram.Send(models.TelegramMessageOut{
 		ChatId: user.ChatId,
-		Text:   "You are good to go!\nYour token: " + user.Token,
+		Text:   fmt.Sprintf(strings.UserAdded, user.Token),
+	})
+
+	// Separate URL message
+	protocol := "http"
+	if ctx.config.IsTlsEnabled() {
+		protocol = "https"
+	}
+	host := ctx.config.MyHost
+	if host == "" {
+		host = "<DOMAIN_OR_IP>:<PORT>"
+	}
+	ctx.telegram.Send(models.TelegramMessageOut{
+		ChatId: user.ChatId,
+		Text:   fmt.Sprintf("%s://%s/%s/smstourlforwarder", protocol, host, user.Token),
 	})
 }
 
@@ -17,7 +34,7 @@ func (ctx *App) end(message models.TelegramMessageIn) {
 	ctx.db.DeleteUser(message.ChatId)
 	ctx.telegram.Send(models.TelegramMessageOut{
 		ChatId: message.ChatId,
-		Text:   "You were erased from the system. Goodbye!",
+		Text:   strings.UserRemoved,
 	})
 }
 

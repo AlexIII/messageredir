@@ -21,6 +21,11 @@ type Config struct {
 	TlsCertFile     string `yaml:"tlsCertFile" env:"TLS_CERT_FILE"`
 	TlsKeyFile      string `yaml:"tlsKeyFile" env:"TLS_KEY_FILE"`
 	LogFileName     string `yaml:"logFileName" env:"LOG_FILE_NAME"`
+	MyHost          string `yaml:"myHost" env:"MY_HOST"`
+}
+
+func (c Config) IsTlsEnabled() bool {
+	return c.TlsCertFile != "" && c.TlsKeyFile != ""
 }
 
 func Load(filename string) Config {

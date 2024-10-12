@@ -47,16 +47,15 @@ func (app App) serveRest() {
 	http.Handle("/", middleware.UserAuth(app.config, app.db, middleware.Logger(r)))
 
 	portStr := ":" + strconv.Itoa(app.config.RestApiPort)
-	tlsOn := app.config.TlsCertFile != "" && app.config.TlsKeyFile != ""
 	serve := func() error {
-		if tlsOn {
+		if app.config.IsTlsEnabled() {
 			return http.ListenAndServeTLS(portStr, app.config.TlsCertFile, app.config.TlsKeyFile, nil)
 		} else {
 			return http.ListenAndServe(portStr, nil)
 		}
 	}
 
-	log.Println("Starting server on", app.config.RestApiPort, "TLS:", tlsOn)
+	log.Println("Starting server on", app.config.RestApiPort, "TLS:", app.config.IsTlsEnabled())
 	if err := serve(); err != nil {
 		log.Fatal(err)
 	}

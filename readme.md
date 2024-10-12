@@ -1,10 +1,13 @@
 # Message Redir: Redirect Messages to Telegram via Webhook
+<img align="right" src="./messageredir-logo.png" width="200" />
 
 This app serves a webhook that forwards messages to a Telegram bot.
 
 Designed to work with [SMS to URL Forwarder](https://f-droid.org/en/packages/tech.bogomolov.incomingsmsgateway/) (Android app).
 
 Other potential use cases include automated notifications from server monitoring systems, Grafana, etc.
+
+This bot is multi-user, meaning you can connect with different Telegram accounts, and forward messages separately.
 
 ## Security Considerations
 
@@ -49,16 +52,19 @@ iii. Run:
 
 ## Configuration
 
-| YAML Property    | Environment Variable | Type   | Description          |
-|------------------|----------------------|--------|----------------------|
-| `dbFileName`     | `DB_FILE_NAME`       | string | Database file name   |
-| `tgBotToken`     | `TG_BOT_TOKEN`       | string | Telegram bot token   |
-| `userTokenLength`| `USER_TOKEN_LENGTH`  | int    | User token length    |
-| `logUserMessages`| `LOG_USER_MESSAGES`  | bool   | Log user messages    |
-| `restApiPort`    | `REST_API_PORT`      | int    | REST API port        |
-| `tlsCertFile`    | `TLS_CERT_FILE`      | string | TLS certificate file |
-| `tlsKeyFile`     | `TLS_KEY_FILE`       | string | TLS key file         |
-| `logFileName`    | `LOG_FILE_NAME`      | string | Log file name        |
+All properties are optional, except `tgBotToken` / `TG_BOT_TOKEN`.
+
+| YAML Property    | Environment Variable        | Type   | Description          |
+|------------------|-----------------------------|--------|----------------------|
+| `tgBotToken`     | `MREDIR_TG_BOT_TOKEN`       | string | Telegram bot token   |
+| `dbFileName`     | `MREDIR_DB_FILE_NAME`       | string | Database file name   |
+| `userTokenLength`| `MREDIR_USER_TOKEN_LENGTH`  | int    | User token length    |
+| `logUserMessages`| `MREDIR_LOG_USER_MESSAGES`  | bool   | Log user messages    |
+| `restApiPort`    | `MREDIR_REST_API_PORT`      | int    | REST API port        |
+| `tlsCertFile`    | `MREDIR_TLS_CERT_FILE`      | string | TLS certificate file |
+| `tlsKeyFile`     | `MREDIR_TLS_KEY_FILE`       | string | TLS key file         |
+| `logFileName`    | `MREDIR_LOG_FILE_NAME`      | string | Log file name        |
+| `MyHost`         | `MREDIR_MY_HOST`            | string | Hostname:Port        |
 
 ## How to Post a Message to the Hook
 
