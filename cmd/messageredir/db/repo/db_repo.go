@@ -5,7 +5,7 @@ import (
 )
 
 type UpdateUserStats struct {
-	MessageRedir bool
+	MessageRedir bool // Update last redirected message time (User.LastMessageRedirAt)
 }
 
 type DbRepo interface {

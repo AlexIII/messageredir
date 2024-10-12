@@ -1,11 +1,11 @@
-package accessToken
+package accesstoken
 
 import (
 	"crypto/rand"
 	"encoding/base64"
 )
 
-// Generates a secure random access token
+// Generates a secure random token
 func Generate(length int) (string, error) {
 	// Create a byte slice to hold the random bytes
 	bytes := make([]byte, length)

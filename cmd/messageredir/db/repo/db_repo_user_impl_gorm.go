@@ -3,7 +3,7 @@ package repo
 import (
 	"errors"
 	"log"
-	"messageredir/cmd/messageredir/accessToken"
+	"messageredir/cmd/messageredir/accesstoken"
 	"messageredir/cmd/messageredir/db/models"
 	"time"
 
@@ -67,7 +67,7 @@ func (db *DbRepoGorm) GetOrCreateUser(chatId int64, username string, generateNew
 	user := db.GetUserByChatId(chatId)
 
 	newToken := func() string {
-		tk, err := accessToken.Generate(generateNewTokenLength)
+		tk, err := accesstoken.Generate(generateNewTokenLength)
 		if err != nil {
 			log.Panic(err)
 		}
