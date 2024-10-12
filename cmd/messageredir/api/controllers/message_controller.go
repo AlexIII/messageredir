@@ -57,7 +57,7 @@ func (ctx MessageController) SmsToUrlForwarder(w http.ResponseWriter, r *http.Re
 	log.Println("Pushing new message for user", user.Username)
 	ctx.telegram.Send(sm.TelegramMessageOut{
 		ChatId: user.ChatId,
-		Text:   fmt.Sprintf(strings.MsgRedirFmt, message.From, formatTimestamp(message.SentAtTs), message.Sim, message.Text),
+		Text:   fmt.Sprintf(strings.MsgRedirFmt, formatTimestamp(message.SentAtTs), message.From, message.Sim, message.Text),
 	})
 }
 
