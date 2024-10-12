@@ -18,7 +18,8 @@ import (
 	"github.com/natefinch/lumberjack"
 )
 
-const ConfigFileName = "messageredir.yaml"
+const configFileName = "messageredir.yaml"
+const httpMaxBodySize = 200 * 1024 // 200 KB
 
 type App struct {
 	config   *config.Config
@@ -27,7 +28,7 @@ type App struct {
 }
 
 func main() {
-	config := config.Load(ConfigFileName)
+	config := config.Load(configFileName)
 	setupLogging(&config)
 	log.Printf("App starting. Config: %+v", config)
 
@@ -44,7 +45,11 @@ func (app App) serveRest() {
 	r := mux.NewRouter()
 	r.HandleFunc("/{user_token}/smstourlforwarder", messageController.SmsToUrlForwarder).Methods("POST")
 
-	http.Handle("/", middleware.UserAuth(app.config, app.db, middleware.Logger(r)))
+	http.Handle("/",
+		middleware.UserAuth(app.config, app.db,
+			middleware.Logger(
+				middleware.BodyLimit(httpMaxBodySize,
+					r))))
 
 	portStr := ":" + strconv.Itoa(app.config.RestApiPort)
 	serve := func() error {
