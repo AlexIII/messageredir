@@ -28,6 +28,15 @@ func (db *DbRepoGorm) DeleteUser(chatId int64) {
 	}
 }
 
+func (db *DbRepoGorm) UpdateUserPreferences(userId uint, preferences models.UserPreferences) {
+	user := db.getUserBy("id = ?", userId)
+	user.Preferences = preferences
+	err := db.driver.Save(user).Error
+	if err != nil {
+		log.Panic(err)
+	}
+}
+
 func (db *DbRepoGorm) UpdateUserStats(userId uint, stats UpdateUserStats) {
 	user := db.getUserBy("id = ?", userId)
 	if stats.MessageRedir {

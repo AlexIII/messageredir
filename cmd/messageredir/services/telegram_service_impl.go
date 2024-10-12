@@ -33,7 +33,9 @@ func StartTelegramService(botToken string) TelegramService {
 			select {
 			// Send outgoing message
 			case msg := <-tg.outMsg:
-				bot.Send(tgbotapi.NewMessage(msg.ChatId, msg.Text))
+				tgMsg := tgbotapi.NewMessage(msg.ChatId, msg.Text)
+				tgMsg.DisableWebPagePreview = true
+				bot.Send(tgMsg)
 			// Queue incoming message
 			case update := <-updates:
 				if update.Message != nil {

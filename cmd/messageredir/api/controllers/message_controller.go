@@ -12,7 +12,7 @@ import (
 	"messageredir/cmd/messageredir/db/repo"
 	"messageredir/cmd/messageredir/services"
 	sm "messageredir/cmd/messageredir/services/models"
-	"messageredir/cmd/messageredir/strings"
+	"messageredir/cmd/messageredir/userstrings"
 	"net/http"
 	"time"
 	"unicode"
@@ -55,9 +55,19 @@ func (ctx MessageController) SmsToUrlForwarder(w http.ResponseWriter, r *http.Re
 	ctx.db.UpdateUserStats(user.ID, repo.UpdateUserStats{MessageRedir: true})
 
 	log.Println("Pushing new message for user", user.Username)
+
+	simName := message.Sim
+	if user.Preferences.SimNames != nil {
+		if name, found := user.Preferences.SimNames[message.Sim]; found {
+			simName = name
+		}
+	}
+
+	userTimeStr := formatTimestamp(message.SentAtTs, user.Preferences.UtcOffset)
+
 	ctx.telegram.Send(sm.TelegramMessageOut{
 		ChatId: user.ChatId,
-		Text:   fmt.Sprintf(strings.MsgRedirFmt, formatTimestamp(message.SentAtTs), message.From, message.Sim, message.Text),
+		Text:   fmt.Sprintf(userstrings.MsgRedirFmt, userTimeStr, message.From, simName, message.Text),
 	})
 }
 
@@ -71,6 +81,6 @@ func safeConvert(data []byte) string {
 	return string(result)
 }
 
-func formatTimestamp(ms int64) string {
-	return time.Unix(ms/1000, 0).UTC().Format("2006-01-02 15:04:05 UTC")
+func formatTimestamp(ms int64, userOffsetMin int) string {
+	return time.Unix(ms/1000+int64(userOffsetMin*60), 0).UTC().Format("2006-01-02 15:04:05")
 }

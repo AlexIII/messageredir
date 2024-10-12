@@ -9,7 +9,7 @@ import (
 	"messageredir/cmd/messageredir/db/repo"
 	"messageredir/cmd/messageredir/services"
 	"messageredir/cmd/messageredir/services/models"
-	"messageredir/cmd/messageredir/strings"
+	"messageredir/cmd/messageredir/userstrings"
 	"net/http"
 	"os"
 	"strconv"
@@ -76,7 +76,7 @@ func (app App) serveBot() {
 			log.Println("Unknown command")
 			app.telegram.Send(models.TelegramMessageOut{
 				ChatId: msg.ChatId,
-				Text:   strings.BotMsgHelp,
+				Text:   userstrings.BotMsgHelp,
 			})
 		}
 	}

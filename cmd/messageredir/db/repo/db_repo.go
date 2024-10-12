@@ -14,4 +14,5 @@ type DbRepo interface {
 	GetUserByChatId(chatId int64) *models.User
 	GetOrCreateUser(chatId int64, username string, generateNewTokenLength int) *models.User
 	UpdateUserStats(userId uint, stats UpdateUserStats)
+	UpdateUserPreferences(userId uint, preferences models.UserPreferences)
 }
