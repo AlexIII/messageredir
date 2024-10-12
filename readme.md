@@ -32,7 +32,7 @@ This will serve HTTP by default. You can pass `MREDIR_TLS_CERT_FILE` and `MREDIR
 
 i. Copy [docker-compose.yaml](./docker-compose.yaml) to an empty directory on your server.
   ```sh
-  wget https://github.com/AlexIII/messageredir/raw/refs/heads/main/docker-compose.yaml
+  wget https://github.com/AlexIII/messageredir/raw/refs/heads/main/docker-compose.yaml -O docker-compose.yaml
   ```
 
 ii. Create an `.env` file in the same directory and set your configuration there. Example:
@@ -56,7 +56,7 @@ iii. Run:
 iv. Later, if you want to update to the latest version:
   ```sh
   docker compose down
-  wget https://github.com/AlexIII/messageredir/raw/refs/heads/main/docker-compose.yaml
+  wget https://github.com/AlexIII/messageredir/raw/refs/heads/main/docker-compose.yaml -O docker-compose.yaml
   docker pull alex3iii/messageredir:latest
   docker compose up -d
   ```
