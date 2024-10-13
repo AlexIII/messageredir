@@ -13,7 +13,7 @@ type contextKey string
 
 const UserKey contextKey = "user"
 
-// AuthMiddleware checks user authorization and fetches user information.
+// Middleware that checks user authorization and fetches user information.
 func UserAuth(config *config.Config, db repo.DbRepo, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		path := strings.Split(r.URL.Path, "/")

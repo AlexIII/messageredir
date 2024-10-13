@@ -46,10 +46,11 @@ func (app App) serveRest() {
 	r.HandleFunc("/{user_token}/smstourlforwarder", messageController.SmsToUrlForwarder).Methods("POST")
 
 	http.Handle("/",
-		middleware.UserAuth(app.config, app.db,
-			middleware.Logger(
-				middleware.BodyLimit(httpMaxBodySize,
-					r))))
+		middleware.Recover(
+			middleware.UserAuth(app.config, app.db,
+				middleware.Logger(
+					middleware.BodyLimit(httpMaxBodySize,
+						r)))))
 
 	portStr := ":" + strconv.Itoa(app.config.RestApiPort)
 	serve := func() error {

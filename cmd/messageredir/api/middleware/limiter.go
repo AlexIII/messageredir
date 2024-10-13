@@ -14,6 +14,7 @@ func (lrc *LimitReadCloser) Close() error {
 	return lrc.underlying.Close()
 }
 
+// Middleware to limit the size of the request body
 func BodyLimit(maxBodySize int64, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		r.Body = &LimitReadCloser{io.LimitReader(r.Body, maxBodySize), r.Body}
