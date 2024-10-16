@@ -17,7 +17,7 @@ func StartTelegramService(botToken string) TelegramService {
 	if err != nil {
 		log.Panic(err)
 	}
-	bot.Debug = true
+	// bot.Debug = true
 	log.Printf("Authorized on telegram account %s", bot.Self.UserName)
 
 	tg := telegram{
